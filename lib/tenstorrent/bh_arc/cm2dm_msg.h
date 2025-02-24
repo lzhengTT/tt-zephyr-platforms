@@ -23,6 +23,7 @@ int32_t ResetBoardByte(uint8_t *data, uint8_t size);
 void ChipResetRequest(void *arg);
 void UpdateFanSpeedRequest(uint32_t fan_speed);
 void Dm2CmReadyRequest(void);
+void UpdateAutoRstTimeoutRequest(uint32_t timeout);
 
 int32_t Dm2CmSendDataHandler(const uint8_t *data, uint8_t size);
 int32_t Dm2CmPingHandler(const uint8_t *data, uint8_t size);

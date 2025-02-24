@@ -40,6 +40,9 @@ static const struct gpio_dt_spec board_fault_led =
 	GPIO_DT_SPEC_GET_OR(DT_PATH(board_fault_led), gpios, {0});
 static const struct device *const ina228 = DEVICE_DT_GET_OR_NULL(DT_NODELABEL(ina228));
 
+// static struct k_timer auto_reset_timer;
+static int auto_reset_timeout = 0;
+
 int update_fw(void)
 {
 	/* To get here we are already running known good fw */
@@ -117,12 +120,20 @@ void process_cm2dm_message(struct bh_chip *chip)
 			bharc_smbus_word_data_write(&chip->config.arc, CMFW_SMBUS_PING, 0xA5A5);
 			break;
 		case kCm2DmMsgIdFanSpeedUpdate:
+			/* Update fan PWM */
 			if (IS_ENABLED(CONFIG_TT_FAN_CTRL)) {
 				set_fan_speed((uint8_t)message.data & 0xFF);
 			}
 			break;
 		case kCm2DmMsgIdReady:
 			chip->data.arc_needs_init_msg = true;
+			break;
+		case kCm2DmMsgIdAutoRstTimeoutUpdate:
+			/* Update auto reset timeout */
+			auto_reset_timeout = message.data;
+			// if (auto_reset_timeout == 0) {
+			// 	k_timer_stop(&auto_reset_timer);
+			// }
 			break;
 		}
 	}
