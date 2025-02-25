@@ -30,6 +30,7 @@ typedef struct dmStaticInfo {
 	uint32_t version;
 	uint32_t bl_version;
 	uint32_t app_version;
+	uint32_t last_reset_was_automatic;
 } __packed dmStaticInfo;
 
 typedef struct cm2dmMessage {
