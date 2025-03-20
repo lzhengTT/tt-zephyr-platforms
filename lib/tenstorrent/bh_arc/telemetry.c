@@ -107,12 +107,6 @@ static struct k_timer telem_update_timer;
 static struct k_work telem_update_worker;
 static int telem_update_interval = 100;
 
-<<<<<<< HEAD
-
-=======
-static int auto_reset_timeout;
->>>>>>> tenstorrent: bh_arc: add cm2bm msg to update telemetry heartbeat
-
 uint32_t ConvertFloatToTelemetry(float value)
 {
 	/* Convert float to signed int 16.16 format */
@@ -340,8 +334,8 @@ static void telemetry_work_handler(struct k_work *work)
 {
 	/* Repeat fetching of dynamic telemetry values */
 	update_telemetry();
-	if (auto_reset_timeout != 0) {
-		UpdateTelemHeartbeatRequest(telemetry[TIMER_HEARTBEAT]);
+	if (IS_ENABLED(CONFIG_TT_AUTO_RESET)) {
+		UpdateTelemHeartbeatRequest(telemetry[TAG_TIMER_HEARTBEAT]);
 	}
 }
 static void telemetry_timer_handler(struct k_timer *timer)

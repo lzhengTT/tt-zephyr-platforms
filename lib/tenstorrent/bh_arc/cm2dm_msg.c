@@ -126,10 +126,10 @@ void Dm2CmReadyRequest(void)
 	EnqueueCm2DmMsg(&msg);
 }
 
-void UpdateAutoRstTimeoutRequest(uint32_t timeout)
+void UpdateAutoResetTimeoutRequest(uint32_t timeout)
 {
 	Cm2DmMsg msg = {
-		.msg_id = kCm2DmMsgIdAutoRstTimeoutUpdate, .data = timeout /* in ms */
+		.msg_id = kCm2DmMsgIdAutoResetTimeoutUpdate, .data = timeout /* in ms */
 	};
 	EnqueueCm2DmMsg(&msg);
 }

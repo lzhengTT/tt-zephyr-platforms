@@ -56,6 +56,10 @@ int main(void)
 			init_fan_ctrl();
 		}
 
+		if (!IS_ENABLED(CONFIG_TT_AUTO_RESET)) {
+			UpdateAutoResetTimeoutRequest(0);
+		}
+
 		/* These timers are split out from their init functions since their work tasks have
 		 * i2c conflicts with other init functions.
 		 *

@@ -18,7 +18,7 @@ typedef enum {
 	kCm2DmMsgIdPing = 2,
 	kCm2DmMsgIdFanSpeedUpdate = 3,
 	kCm2DmMsgIdReady = 4,
-	kCm2DmMsgIdAutoRstTimeoutUpdate = 5,
+	kCm2DmMsgIdAutoResetTimeoutUpdate = 5,
 	kCm2DmMsgTelemHeartbeatUpdate = 6,
 } Cm2DmMsgId;
 

@@ -125,7 +125,7 @@ void process_cm2dm_message(struct bh_chip *chip)
 		case kCm2DmMsgIdReady:
 			chip->data.arc_needs_init_msg = true;
 			break;
-		case kCm2DmMsgIdAutoRstTimeoutUpdate:
+		case kCm2DmMsgIdAutoResetTimeoutUpdate:
 			/* Update auto reset timeout */
 			chip->data.auto_reset_timeout = message.data;
 			if (chip->data.auto_reset_timeout == 0) {
@@ -364,6 +364,13 @@ int main(void)
 
 	if (IS_ENABLED(CONFIG_TT_ASSEMBLY_TEST) && board_fault_led.port != NULL) {
 		gpio_pin_set_dt(&board_fault_led, 1);
+	}
+
+	/* Start auto-reset timer */
+	ARRAY_FOR_EACH_PTR(BH_CHIPS, chip) {
+		chip->data.auto_reset_timeout = 1000;
+		k_timer_start(&chip->auto_reset_timer, K_MSEC(chip->data.auto_reset_timeout),
+			      K_NO_WAIT);
 	}
 
 	/* No mechanism for getting bl version... yet */

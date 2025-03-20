@@ -91,7 +91,7 @@ int bh_chip_set_fan_rpm(struct bh_chip *chip, uint16_t rpm)
 	return ret;
 }
 
-void auto_reset(struct k_timer *timer)
+void bh_chip_auto_reset(struct k_timer *timer)
 {
 	struct bh_chip *chip = CONTAINER_OF(timer, struct bh_chip, auto_reset_timer);
 
