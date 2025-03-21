@@ -414,6 +414,9 @@ ReadStatus ReadTS(uint32_t id, uint16_t *data)
 
 	do {
 		sdif_done = ReadReg(GET_TS_REG_ADDR(id, SDIF_DONE));
+		if (!sdif_done) {
+			k_usleep(1);
+		}
 	} while (!sdif_done);
 
 	PVT_CNTL_TS_PD_SDIF_DATA_reg_u ts_sdif_data;
