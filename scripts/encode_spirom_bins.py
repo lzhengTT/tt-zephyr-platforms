@@ -136,7 +136,7 @@ def main():
         override={
             "fw_bundle_version": int(os.environ.get("FW_BUNDLE"), 0)
             if os.environ.get("FW_BUNDLE")
-            else 0,
+            else 0x500F03AA,
         },
     )
     convert_proto_txt_to_bin_file(
