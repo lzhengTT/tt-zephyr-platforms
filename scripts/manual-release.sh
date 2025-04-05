@@ -26,6 +26,7 @@ BOARD_REVS="p100 p100a p150a p150b p150c p300a p300b p300c"
 MAJOR="$(grep "^VERSION_MAJOR" VERSION | awk '{print $3}')"
 MINOR="$(grep "^VERSION_MINOR" VERSION | awk '{print $3}')"
 PATCH="$(grep "^PATCHLEVEL" VERSION | awk '{print $3}')"
+VERSION_TWEAK="$(grep "^VERSION_TWEAK" VERSION | awk '{print $3}')"
 EXTRAVERSION="$(grep "^EXTRAVERSION" VERSION | awk '{print $3}')"
 
 if [ -z "$MAJOR" ] || [ -z "$MINOR" ] || [ -z "$PATCH" ]; then
@@ -41,15 +42,14 @@ else
 fi
 
 RELEASE="$MAJOR.$MINOR.$PATCH$EXTRAVERSION"
-PRELEASE="$MAJOR.$MINOR.$PATCH.$EXTRAVERSION_NUMBER"
+PRELEASE="$MAJOR.$MINOR.$PATCH.$VERSION_TWEAK"
 
 echo "Building release $RELEASE / pack $PRELEASE"
-
 for REV in $BOARD_REVS; do
-  BOARD="tt_blackhole@$REV/tt_blackhole/smc";;
+  BOARD="tt_blackhole@$REV/tt_blackhole/smc"
 
   echo "Building $BOARD"
-  west build -d "$TEMP_DIR/$REV" --sysbuild -p -b "$BOARD" app/smc >/dev/null 2>&1
+  west build -d "$TEMP_DIR/$REV" --sysbuild -p -b "$BOARD" app/smc # >/dev/null 2>&1 
 done
 
 echo "Creating fw_pack-$PRELEASE.fwbundle"
