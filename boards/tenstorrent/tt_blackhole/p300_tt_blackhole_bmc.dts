@@ -67,8 +67,26 @@
 		strapping {
 			gpio6 {
 				compatible = "zephyr,gpio-line";
-				label = "GPIO pin representing strap gpio6";
+				label = "GPIO pin representing strap GPIO6_PCIE_BOOT_INSTANCE";
 				gpios = <&chip1_strapping 4 GPIO_ACTIVE_HIGH>;
+			};
+
+			gpio38 {
+				compatible = "zephyr,gpio-line";
+				label = "GPIO pin representing strap GPIO38_SPI_MODE_0";
+				gpios = <&chip1_strapping 13 GPIO_ACTIVE_LOW>;
+			};
+
+			gpio39 {
+				compatible = "zephyr,gpio-line";
+				label = "GPIO pin representing strap GPIO39_SPI_MODE_1";
+				gpios = <&chip1_strapping 14 GPIO_ACTIVE_HIGH>;
+			};
+
+			gpio40 {
+				compatible = "zephyr,gpio-line";
+				label = "GPIO pin representing strap GPIO40_SPI_DDR_EN";
+				gpios = <&chip1_strapping 15 GPIO_ACTIVE_HIGH>;
 			};
 		};
 

@@ -19,9 +19,20 @@ void bh_chip_set_straps(struct bh_chip *chip)
 {
 	k_mutex_lock(&chip->data.reset_lock, K_FOREVER);
 
+	volatile int ret;
+
 	bharc_enable_i2cbus(&chip->config.arc);
 	if (chip->config.strapping.gpio6.port != NULL) {
-		gpio_pin_configure_dt(&chip->config.strapping.gpio6, GPIO_OUTPUT_ACTIVE);
+		ret = gpio_pin_configure_dt(&chip->config.strapping.gpio6, GPIO_OUTPUT_ACTIVE);
+	}
+	if (chip->config.strapping.gpio38.port != NULL) {
+		ret = gpio_pin_configure_dt(&chip->config.strapping.gpio38, GPIO_OUTPUT_ACTIVE);
+	}
+	if (chip->config.strapping.gpio39.port != NULL) {
+		ret = gpio_pin_configure_dt(&chip->config.strapping.gpio38, GPIO_OUTPUT_ACTIVE);
+	}
+	if (chip->config.strapping.gpio40.port != NULL) {
+		ret = gpio_pin_configure_dt(&chip->config.strapping.gpio40, GPIO_OUTPUT_ACTIVE);
 	}
 	bharc_disable_i2cbus(&chip->config.arc);
 
@@ -35,6 +46,15 @@ void bh_chip_unset_straps(struct bh_chip *chip)
 	bharc_enable_i2cbus(&chip->config.arc);
 	if (chip->config.strapping.gpio6.port != NULL) {
 		gpio_pin_configure_dt(&chip->config.strapping.gpio6, GPIO_INPUT);
+	}
+	if (chip->config.strapping.gpio38.port != NULL) {
+		gpio_pin_configure_dt(&chip->config.strapping.gpio38, GPIO_INPUT);
+	}
+	if (chip->config.strapping.gpio39.port != NULL) {
+		gpio_pin_configure_dt(&chip->config.strapping.gpio38, GPIO_INPUT);
+	}
+	if (chip->config.strapping.gpio40.port != NULL) {
+		gpio_pin_configure_dt(&chip->config.strapping.gpio40, GPIO_INPUT);
 	}
 	bharc_disable_i2cbus(&chip->config.arc);
 
