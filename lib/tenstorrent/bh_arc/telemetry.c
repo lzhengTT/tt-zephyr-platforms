@@ -334,10 +334,8 @@ static void telemetry_work_handler(struct k_work *work)
 {
 	/* Repeat fetching of dynamic telemetry values */
 	update_telemetry();
-	if (IS_ENABLED(CONFIG_TT_AUTO_RESET)) {
-		UpdateTelemHeartbeatRequest(telemetry[TAG_TIMER_HEARTBEAT]);
-	}
 }
+
 static void telemetry_timer_handler(struct k_timer *timer)
 {
 	k_work_submit(&telem_update_worker);

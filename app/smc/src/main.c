@@ -22,8 +22,11 @@
 #include <zephyr/init.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/drivers/watchdog.h>
 
 LOG_MODULE_REGISTER(main, CONFIG_TT_APP_LOG_LEVEL);
+
+static const struct device *const wdt0 = DEVICE_DT_GET_OR_NULL(DT_NODELABEL(wdt0));
 
 int main(void)
 {
@@ -56,10 +59,6 @@ int main(void)
 			init_fan_ctrl();
 		}
 
-		if (!IS_ENABLED(CONFIG_TT_AUTO_RESET)) {
-			UpdateAutoResetTimeoutRequest(0);
-		}
-
 		/* These timers are split out from their init functions since their work tasks have
 		 * i2c conflicts with other init functions.
 		 *
@@ -69,12 +68,19 @@ int main(void)
 		if (dvfs_enabled) {
 			StartDVFSTimer();
 		}
+
+		if (!DT_NODE_HAS_STATUS_OKAY(DT_NODELABEL(wdt0)) ||
+		    (get_fw_table()->chip_limits.auto_reset_timeout == 0)) {
+			/* How to solve this? Not going through the device API */
+			UpdateAutoResetTimeoutRequest(0);
+		}
 	}
 
 	Dm2CmReadyRequest();
 
 	while (1) {
-		k_msleep(1000);
+		k_msleep(250);
+		wdt_feed(wdt0, 0);
 	}
 
 	return 0;
