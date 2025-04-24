@@ -1,0 +1,11 @@
+# Copyright (c) 2024 Tenstorrent AI ULC
+# SPDX-License-Identifier: Apache-2.0
+
+config TT_WAKE_MAIN_LOOP
+	bool "BM wake main loop support"
+	help
+	  BM wake main loop support.
+
+module = TT_WAKE_MAIN_LOOP
+module-str = TT wake main loop
+source "subsys/logging/Kconfig.template.log_config"

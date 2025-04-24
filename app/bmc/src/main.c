@@ -23,6 +23,7 @@
 #include <tenstorrent/tt_smbus.h>
 #include <tenstorrent/bh_chip.h>
 #include <tenstorrent/bh_arc.h>
+#include <tenstorrent/wake_main_loop.h>
 #include <tenstorrent/jtag_bootrom.h>
 
 LOG_MODULE_REGISTER(main, CONFIG_TT_APP_LOG_LEVEL);
@@ -301,7 +302,7 @@ int main(void)
 		(bmStaticInfo){.version = 1, .bl_version = 0, .app_version = APPVERSION};
 
 	while (1) {
-		k_sleep(K_MSEC(20));
+		sleep_main_loop(K_MSEC(20));
 
 		/* handler for therm trip */
 		ARRAY_FOR_EACH_PTR(BH_CHIPS, chip) {
