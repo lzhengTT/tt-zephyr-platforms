@@ -305,13 +305,11 @@ int main(void)
 
 		/* handler for therm trip */
 		ARRAY_FOR_EACH_PTR(BH_CHIPS, chip) {
-			if (chip->data.therm_trip_triggered) {
-				chip->data.therm_trip_triggered = false;
+			if (atomic_test_and_clear_bit(&chip->data.therm_trip_triggered, 0)) {
 				if (IS_ENABLED(CONFIG_TT_FAN_CTRL)) {
 					set_fan_speed(100);
 				}
 				bh_chip_reset_chip(chip, true);
-				bh_chip_cancel_bus_transfer_clear(chip);
 			}
 		}
 

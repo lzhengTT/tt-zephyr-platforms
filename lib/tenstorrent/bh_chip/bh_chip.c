@@ -110,9 +110,14 @@ int bh_chip_reset_chip(struct bh_chip *chip, bool force_reset)
 
 void therm_trip_detected(const struct device *dev, struct gpio_callback *cb, uint32_t pins)
 {
+	/* Ramp up fan */
+	if (IS_ENABLED(CONFIG_TT_FAN_CTRL)) {
+		set_fan_speed(100);
+	}
+	/* Assert ASIC reset */
 	struct bh_chip *chip = CONTAINER_OF(cb, struct bh_chip, therm_trip_cb);
-	chip->data.therm_trip_triggered = true;
-	bh_chip_cancel_bus_transfer_set(chip);
+
+	bh_chip_reset_chip(chip, true);
 }
 
 int therm_trip_gpio_setup(struct bh_chip *chip)
