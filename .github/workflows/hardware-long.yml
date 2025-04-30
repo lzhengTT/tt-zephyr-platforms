@@ -122,7 +122,7 @@ jobs:
       - name: Flash Firmware
         working-directory: zephyr
         run: |
-          tar -xvf ../combined-fwbundle.tar
+          tar -xvf ../fw_pack*.fwbundle
           tt-flash --fw-tar fw_pack*.fwbundle --force
           # # This needs to be added to the github runner
           # export PATH=$PATH:/opt/SEGGER/JLink/
