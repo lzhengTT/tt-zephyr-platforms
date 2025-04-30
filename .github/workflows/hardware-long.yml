@@ -5,6 +5,10 @@ on:
   schedule:
     - cron: "0 0 * * *"
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Build Firmware"]
+    types:
+      - completed
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -49,7 +53,7 @@ jobs:
           . /tmp/rescan-pcie.sh
       - name: Flash the firmware
         run: |
-          tar -xvf ../combined-fwbundle.tar
+          cp combined-fwbundle/fw_pack*.fwbundle .
           # pip install git+https://github.com/tenstorrent/tt-flash.git
           tt-flash --fw-tar fw_pack*.fwbundle --force
       - name: Checkout Metal
