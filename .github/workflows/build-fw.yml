@@ -5,6 +5,7 @@ on:
     secrets:
       SIGNATURE_KEY:
         required: true
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -175,5 +176,5 @@ jobs:
         with:
           name: combined-fwbundle
           path: |
-            fw_pack*.fwbundle
+            fw_pack*.fwbundle.zip
             
