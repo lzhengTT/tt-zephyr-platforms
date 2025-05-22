@@ -7,28 +7,41 @@ on:
       - 'v*rc*'
 
 jobs:
-  build-spdx:
+  prepare-release:
+    env:
+      RELEASE_NOTES_DIR: doc/release
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
           path: tt-zephyr-platforms
           ref: ${{ github.ref }}
-      - id: get_version
+      - id: set_vars
         run: |
           echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
           echo "TRIMMED_VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          if [ -f "$RELEASE_NOTES_DIR/release-notes-$VERSION.md" ]; then
+            # not an rc, so we should generate release notes
+            echo "RELEASE_NOTES=release-notes-$VERSION.md" >> $GITHUB_OUTPUT
+          fi
 
       - name: REUSE Compliance Check
         uses: fsfe/reuse-action@v5
         with:
-          args: spdx -o tt-zephyr-platforms-${{ steps.get_version.outputs.VERSION }}.spdx
+          args: spdx -o tt-zephyr-platforms-${{ steps.set_vars.outputs.VERSION }}.spdx
 
       - name: Upload SPDX
         uses: actions/upload-artifact@v4
         with:
-          name: tt-zephyr-platforms-${{ steps.get_version.outputs.VERSION }}.spdx
-          path: tt-zephyr-platforms-${{ steps.get_version.outputs.VERSION }}.spdx
+          name: tt-zephyr-platforms-${{ steps.set_vars.outputs.VERSION }}.spdx
+          path: tt-zephyr-platforms-${{ steps.set_vars.outputs.VERSION }}.spdx
+
+      - name: Upload Release Notes
+        if: ${{ steps.set_vars.outputs.RELEASE_NOTES != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.set_vars.outputs.RELEASE_NOTES }}
+          path: ${{ env.RELEASE_NOTES_DIR }}/${{ steps.set_vars.outputs.RELEASE_NOTES }}
 
   build-release:
     uses: ./.github/workflows/build-fw.yml
@@ -36,13 +49,17 @@ jobs:
       SIGNATURE_KEY: ${{ secrets.SIGNATURE_KEY }}
 
   publish-release:
-    needs: [build-release, build-spdx]
+    needs: [build-release, prepare-release]
     runs-on: ubuntu-24.04
     steps:
-      - id: get_version
+      - id: set_vars
         run: |
           echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
           echo "TRIMMED_VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          if [ -f "$RELEASE_NOTES_DIR/release-notes-$VERSION.md" ]; then
+            # not an rc, so we should generate release notes
+            echo "RELEASE_NOTES=release-notes-$VERSION.md" >> $GITHUB_OUTPUT
+          fi
 
       - name: Download firmware artifacts
         uses: actions/download-artifact@v4
@@ -64,20 +81,22 @@ jobs:
             mv $REV/update.fwbundle $REV.fwbundle
           done
 
-          zip -r -9 tt-zephyr-platforms-${{ steps.get_version.outputs.VERSION }}.zip $BOARD_REVS
+          zip -r -9 tt-zephyr-platforms-${{ steps.set_vars.outputs.VERSION }}.zip $BOARD_REVS
 
-      - name: Create empty release notes body
-        run: |
-          echo "TODO: add release overview and notes link" > release-notes.txt
+      - name: Download Release Notes
+        if: ${{ steps.set_vars.outputs.RELEASE_NOTES != '' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ steps.set_vars.outputs.RELEASE_NOTES }}
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          body_path: release-notes.txt
+          body_path: ${{ steps.set_vars.outputs.RELEASE_NOTES }}
           draft: true
           prerelease: true
           files: |
             *.fwbundle
-            tt-zephyr-platforms-${{ steps.get_version.outputs.VERSION }}.zip
-            tt-zephyr-platforms-${{ steps.get_version.outputs.VERSION }}.spdx
+            tt-zephyr-platforms-${{ steps.set_vars.outputs.VERSION }}.zip
+            tt-zephyr-platforms-${{ steps.set_vars.outputs.VERSION }}.spdx
