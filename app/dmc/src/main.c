@@ -30,6 +30,12 @@
 
 LOG_MODULE_REGISTER(main, CONFIG_TT_APP_LOG_LEVEL);
 
+static const struct gpio_dt_spec sys_jtag_mux =
+       GPIO_DT_SPEC_GET_OR(DT_PATH(sys_jtag_mux), gpios, {0});
+
+static const struct gpio_dt_spec arc_jtag_mux =
+       GPIO_DT_SPEC_GET_OR(DT_PATH(arc_jtag_mux), gpios, {0});
+
 struct bh_chip BH_CHIPS[BH_CHIP_COUNT] = {DT_FOREACH_PROP_ELEM(DT_PATH(chips), chips, INIT_CHIP)};
 
 #if BH_CHIP_PRIMARY_INDEX >= BH_CHIP_COUNT
@@ -341,6 +347,9 @@ int main(void)
 	}
 
 	printk("DMFW VERSION " APP_VERSION_STRING "\n");
+
+	gpio_pin_configure_dt(&sys_jtag_mux, GPIO_OUTPUT_ACTIVE);
+    gpio_pin_configure_dt(&arc_jtag_mux, GPIO_OUTPUT_ACTIVE);
 
 	if (IS_ENABLED(CONFIG_TT_ASSEMBLY_TEST) && board_fault_led.port != NULL) {
 		gpio_pin_set_dt(&board_fault_led, 1);
