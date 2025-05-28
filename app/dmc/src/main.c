@@ -367,24 +367,23 @@ int main(void)
 				if (IS_ENABLED(CONFIG_TT_FAN_CTRL)) {
 					set_fan_speed(100);
 				}
+
+				chip->data.trigger_reset = true;
 				bh_chip_cancel_bus_transfer_clear(chip);
 				bh_chip_reset_chip(chip, true);
+				chip->data.trigger_reset = false;
 			}
 		}
 
 		/* handler for PERST */
 		ARRAY_FOR_EACH_PTR(BH_CHIPS, chip) {
 			if (chip->data.trigger_reset) {
-				chip->data.trigger_reset = false;
 				bh_chip_cancel_bus_transfer_clear(chip);
-				if (chip->data.workaround_applied) {
-					jtag_bootrom_reset_asic(chip);
-					jtag_bootrom_soft_reset_arc(chip);
-					jtag_bootrom_teardown(chip);
-					chip->data.needs_reset = false;
-				} else {
-					chip->data.needs_reset = true;
-				}
+
+				jtag_bootrom_reset_asic(chip);
+				jtag_bootrom_soft_reset_arc(chip);
+				jtag_bootrom_teardown(chip);
+				chip->data.trigger_reset = false;
 			}
 		}
 

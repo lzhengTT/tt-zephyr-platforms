@@ -36,9 +36,6 @@ struct bh_chip_config {
 };
 
 struct bh_chip_data {
-	/* Flag set when we need to apply the reset regardless of preset state. */
-	bool needs_reset;
-
 	/* Flag set when bootrom has been loaded and the arc_soft_reset sequence can be appled. */
 	bool workaround_applied;
 
@@ -50,7 +47,11 @@ struct bh_chip_data {
 
 	unsigned int bus_cancel_flag;
 
-	/* notify the main thread to apply reset sequence */
+	/*
+	 * notify the main thread to apply reset sequence
+	 * also used during initial workaround application to invoke a reset as soon
+	 * as the workaround has been applied
+	 */
 	bool trigger_reset;
 
 	/* notify the main thread to handle therm trip */

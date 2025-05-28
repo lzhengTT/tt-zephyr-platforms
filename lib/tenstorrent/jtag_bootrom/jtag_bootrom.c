@@ -62,8 +62,10 @@ static const struct gpio_dt_spec preset_trigger = GPIO_DT_SPEC_GET(DT_PATH(prese
 void gpio_asic_reset_callback(const struct device *port, struct gpio_callback *cb, uint32_t pins)
 {
 	ARRAY_FOR_EACH_PTR(BH_CHIPS, chip) {
-		bh_chip_cancel_bus_transfer_set(chip);
-		chip->data.trigger_reset = true;
+		if (!chip->data.trigger_reset) {
+			bh_chip_cancel_bus_transfer_set(chip);
+			chip->data.trigger_reset = true;
+		}
 	}
 	tt_event_post(TT_EVENT_WAKE);
 }
@@ -166,7 +168,7 @@ int jtag_bootrom_init(struct bh_chip *chip)
 		 * workaround to
 		 * ensure this remains true.
 		 */
-		chip->data.needs_reset = true;
+		chip->data.trigger_reset = true;
 	}
 #endif /* IS_ENABLED(CONFIG_JTAG_LOAD_ON_PRESET) */
 
@@ -274,8 +276,6 @@ void jtag_bootrom_soft_reset_arc(struct bh_chip *chip)
 	 * cycles but may lead to errors in the future.
 	 */
 	jtag_axi_write32(dev, BH_RESET_BASE + 0x100, 0);
-
-	chip->data.needs_reset = false;
 #endif
 }
 
