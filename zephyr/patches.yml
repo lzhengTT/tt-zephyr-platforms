@@ -75,9 +75,11 @@ patches:
     module: zephyr
     author: Daniel DeGrasse
     email: ddegrasse@tenstorrent.com
+    date: 2025-05-05
     upstreamable: true
     merge-pr: https://github.com/zephyrproject-rtos/zephyr/pull/89499
-    date: 2025-05-05
+    merge-status: true
+    merge-date: 2025-05-08
     comments: |
       Fix python implementation of west telnet client to not print newlines
       after decoding server data
@@ -136,9 +138,12 @@ patches:
     author: Alexander Lay
     email: alexanderlay@tenstorrent.com
     date: 2025-06-18
-    upstreamable: true
+    upstreamable: false
+    merge-pr: https://github.com/zephyrproject-rtos/zephyr/pull/92188
     comments: |
-      Add a boolean Kconfig option to skip setting zero duty cycle in pwm api tests.
+      Add a boolean Kconfig option to skip setting zero duty cycle in pwm_api tests.
+      The PR was rejected because the pwm_api test suite was originally designed as
+      a driver test and not a board or actual hardware test.
   - path: zephyr/requirements-compliance.patch
     sha256sum: 8610736ceaf65488a105b6cf828449b890bbd769604c325b076619b0ba7be83a
     module: zephyr
@@ -150,3 +155,27 @@ patches:
       A workaround for junitparser write_xml() specifying encoding='utf-8' and mode='wb'.
       Upstream already has this fixed-ish, so this can simply be removed once we upgrade
       to v4.2.0.
+  - path: zephyr/libc-picolibc-Make-lock-typing-match-between-Zephyr-.patch
+    sha256sum: 542b6bea86ca966c5c3a4e0537ef74b68ba1728a7ac203fbec9bb8225742d726
+    module: zephyr
+    author: Keith Packard
+    email: keithp@keithp.com
+    date: 2025-01-01
+    upstreamable: true
+    comments: |
+      This patch is pulled directly from upstream- it will be in the 4.2 release,
+      but for now we need it to support building on SDK releases after 0.17.0
+  - path: zephyr/i2c-dw-bus-recovery.patch
+    sha256sum: d03e823435666ead4ddc996276b48c152e98c7d16b3e74a45fabd9c8fbc39a97
+    module: zephyr
+    author: Titan Chen
+    email: titan.chen@realtek.com
+    date: 2025-05-02
+    upstreamable: true
+    merge-pr: https://github.com/zephyrproject-rtos/zephyr/pull/89386
+    merge-date: 2025-05-28
+    merge-status: true
+    comments: |
+      Already upstream change (merged after v4.1.0) to add bus recovery support for the DesignWare
+      I2C controller. This can simply be removed once we upgrade to v4.2.0. Also contains
+      follow-up changes that are already upstream for error checking, etc.
