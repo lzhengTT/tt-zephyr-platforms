@@ -27,17 +27,20 @@ typedef struct pinctrl_soc_pin {
 	 DT_PROP_OR(node_id, receive_enable, 0) * PINCTRL_TT_BH_RXEN |                             \
 	 DT_PROP_OR(node_id, input_schmitt_enable, 0) * PINCTRL_TT_BH_STEN |                       \
 	 PINCTRL_TT_BH_DRVS(DT_PROP_OR(node_id, drive_strength, PINCTRL_TT_BH_DRVS_DFLT)))
-
+	
+// 
 #define PINCTRL_TT_BH_DT_PIN(node_id)                                                              \
 	{                                                                                          \
 		.pin = DT_PROP_BY_IDX(node_id, pinmux, 0),                                         \
 		.iofunc = DT_PROP_BY_IDX(node_id, pinmux, 1),                                      \
 		.iomode = PINCTRL_TT_BH_DT_PIN_FLAGS(node_id),                                     \
 	},
-
+// Convert DT pinmux to pinctrl_soc_pin_t structure
 #define Z_PINCTRL_STATE_PIN_INIT(node_id, prop, idx)                                               \
 	PINCTRL_TT_BH_DT_PIN(DT_PROP_BY_IDX(node_id, prop, idx))
 
+//initialize pinctrl_soc_pin_t structure for each pin in the state
+//prop is (pinctrl-N)
 #define Z_PINCTRL_STATE_PINS_INIT(node_id, prop)                                                   \
 	{DT_FOREACH_PROP_ELEM(node_id, prop, Z_PINCTRL_STATE_PIN_INIT)}
 

@@ -5,6 +5,7 @@
  */
 #define DT_DRV_COMPAT tenstorrent_bh_pinctrl
 #include "pinctrl_soc.h"
+#include <zephyr/dt-bindings/pinctrl/tt_blackhole_smc-pinctrl.h>
 
 #include <stdint.h>
 
@@ -47,6 +48,14 @@
 
 #define PINCTRL_TT_BH_UART_CNTL_REG_OFFSET 0x00000608
 
+#define RESET_UNIT_I2C_PAD_CNTL_REG_ADDR  0x800301C0
+#define RESET_UNIT_I2C1_PAD_CNTL_REG_ADDR 0x800305CC
+#define RESET_UNIT_I2C2_PAD_CNTL_REG_ADDR 0x800305D8
+#define RESET_UNIT_I2C_PAD_DATA_REG_ADDR  0x800301C4
+#define RESET_UNIT_I2C1_PAD_DATA_REG_ADDR 0x800305D0
+#define RESET_UNIT_I2C2_PAD_DATA_REG_ADDR 0x800305DC
+#define RESET_UNIT_I2C_CNTL_REG_ADDR      0x800300F0
+
 LOG_MODULE_REGISTER(bh_arc_pinctrl, CONFIG_PINCTRL_LOG_LEVEL);
 
 static inline uint32_t pinctrl_tt_bh_pin_to_bank(uint32_t pin);
@@ -61,20 +70,56 @@ static inline uintptr_t pinctrl_tt_bh_sten_reg(uint32_t pin);
 static inline uintptr_t pinctrl_tt_bh_drvs_reg(uint32_t pin);
 static inline uint32_t pinctrl_tt_bh_drvs_shift(uint32_t pin);
 
+void pinctrl_tt_bh_i2c_init_gpio(uint32_t pin)
+{
+	/* Initialize I2C pads for the given pin */
+}
+
+static inline uint32_t pinctrl_tt_bh_get_i2c_pad_ctnl_addr(uint32_t id)
+{
+    switch (id) {
+    case 0:
+        return RESET_UNIT_I2C_PAD_CNTL_REG_ADDR;
+    case 1:
+        return RESET_UNIT_I2C1_PAD_CNTL_REG_ADDR;
+    case 2:
+        return RESET_UNIT_I2C2_PAD_CNTL_REG_ADDR;
+    default:
+        return 0;
+    }
+}
+
+/* Get I2C_PAD_DATA register offset with respect to RESET_UNIT. */
+static inline uint32_t pinctrl_tt_bh_get_i2c_pad_data_addr(uint32_t id)
+{
+    switch (id) {
+    case 0:
+        return RESET_UNIT_I2C_PAD_DATA_REG_ADDR;
+    case 1:
+        return RESET_UNIT_I2C1_PAD_DATA_REG_ADDR;
+    case 2:
+        return RESET_UNIT_I2C2_PAD_DATA_REG_ADDR;
+    default:
+        return 0;
+    }
+}
+
 static int pinctrl_tt_bh_set(uint32_t pin, uint32_t func, uint32_t mode)
 {
+	//should be changed to become more scalabale!
+	//will have many many AF's for each pin
 	uint32_t idx;
 
 	if (pin >= PINCTRL_TT_BH_PINS) {
 		return -EINVAL;
 	}
 
-	if (func > 1) {
+	if (func > PINCTRL_TT_BH_AF1) {
 		return -EINVAL;
 	}
 
-	if (func == 0) {
-		/* GPIO only */
+	if (func == PINCTRL_TT_BH_AF0) {
+		/* If func is 0, it means GPIO only, no alternate function */
 		return 0;
 	}
 
@@ -83,6 +128,23 @@ static int pinctrl_tt_bh_set(uint32_t pin, uint32_t func, uint32_t mode)
 	case 48: /* uart0_tx_default */
 	case 49: /* uart0_rx_default */
 		break;
+	
+	uint8_t id;
+	case 0xfffffff0: /* i2c0_scl */
+	case 0xfffffff1: /* i2c0_sda */
+		id = 0;
+	case 0xfffffff2: /* i2c1_scl */
+	case 0xfffffff3: /* i2c1_sda */
+		id = 1;
+	case 0xfffffff4: /* i2c2_scl */
+	case 0xfffffff5: /* i2c2_sda */
+		id = 2;
+
+	pinctrl_tt_bh_i2c_init_gpio(id);
+		
+		
+		
+
 	default:
 		LOG_DBG("No alternate function for pin %u", pin);
 		return -EIO;
@@ -124,6 +186,7 @@ static int pinctrl_tt_bh_set(uint32_t pin, uint32_t func, uint32_t mode)
 
 int pinctrl_configure_pins(const pinctrl_soc_pin_t *pins, uint8_t pin_cnt, uintptr_t reg)
 {
+	/* most low level method that configures pins, used by pinctrl_apply_state etc api calls*/
 	ARG_UNUSED(reg);
 
 	int ret;
