@@ -15,7 +15,6 @@
 #include "noc.h"
 #include "noc_init.h"
 #include "pcie.h"
-#include "pll.h"
 #include "pvt.h"
 #include "reg.h"
 #include "regulator.h"
@@ -44,6 +43,19 @@
 #define ETH_SD_FW_TAG    "ethsdfw"
 #define MRISC_FW_CFG_TAG "memfwcfg"
 #define MRISC_FW_TAG     "memfw"
+
+#include <zephyr/device.h>
+#include <zephyr/devicetree.h>
+#include <zephyr/drivers/clock_control/clock_control_tt_bh.h>
+#include <zephyr/drivers/clock_control.h>
+
+#define DT_DRV_COMPAT tenstorrent_bh_clock_control
+#define PLL_DEVICE_INIT(inst) DEVICE_DT_INST_GET(inst),
+
+static const struct device *const pll_devs[] = {
+	DT_INST_FOREACH_STATUS_OKAY(PLL_DEVICE_INIT)
+};
+
 
 LOG_MODULE_REGISTER(InitHW, CONFIG_TT_APP_LOG_LEVEL);
 
@@ -219,7 +231,9 @@ static int InitMrisc(void)
 		gddr_speed = MIN_GDDR_SPEED;
 	}
 
-	if (SetGddrMemClk(gddr_speed / GDDR_SPEED_TO_MEMCLK_RATIO)) {
+	if (clock_control_set_rate(pll_devs[3],
+		(clock_control_subsys_t)CLOCK_CONTROL_TT_BH_CLOCK_GDDRMEMCLK,
+		(clock_control_subsys_rate_t)(gddr_speed / GDDR_SPEED_TO_MEMCLK_RATIO))) {
 		LOG_ERR("%s(%d) failed: %d", "SetGddrMemClk", gddr_speed, -EIO);
 		return -EIO;
 	}
@@ -401,13 +415,18 @@ static int InitHW(void)
 
 	SetPostCode(POST_CODE_SRC_CMFW, POST_CODE_ARC_INIT_STEP3);
 	/* Put all PLLs back into bypass, since tile resets need to be deasserted at low speed */
-	PLLAllBypass();
+	for (size_t i = 0; i < ARRAY_SIZE(pll_devs); i++) {
+		clock_control_configure(pll_devs[i], NULL,
+			(void *)CLOCK_CONTROL_TT_BH_CONFIG_BYPASS);
+	}	
 	DeassertTileResets();
 
 	SetPostCode(POST_CODE_SRC_CMFW, POST_CODE_ARC_INIT_STEP4);
-	/* Init clocks to faster (but safe) levels */
-	PLLInit();
-
+	/* Init clocks to faster (but safe) levels */	
+	for (size_t i = 0; i < ARRAY_SIZE(pll_devs); i++) {
+		clock_control_set_rate(pll_devs[i], (clock_control_subsys_t)CLOCK_CONTROL_TT_BH_INIT_STATE, (clock_control_subsys_rate_t)-1);
+	}	
+	
 	SetPostCode(POST_CODE_SRC_CMFW, POST_CODE_ARC_INIT_STEP5);
 
 	if (!IS_ENABLED(CONFIG_TT_SMC_RECOVERY)) {
@@ -427,10 +446,15 @@ static int InitHW(void)
 	SetPostCode(POST_CODE_SRC_CMFW, POST_CODE_ARC_INIT_STEP7);
 	if (!IS_ENABLED(CONFIG_TT_SMC_RECOVERY)) {
 		/* Go back to PLL bypass, since RISCV resets need to be deasserted at low speed */
-		PLLAllBypass();
+		for (size_t i = 0; i < ARRAY_SIZE(pll_devs); i++) {
+			clock_control_configure(pll_devs[i], NULL,
+				(void *)CLOCK_CONTROL_TT_BH_CONFIG_BYPASS);
+		}	
 		/* Deassert RISC reset from reset_unit */
 		DeassertRiscvResets();
-		PLLInit();
+		for (size_t i = 0; i < ARRAY_SIZE(pll_devs); i++) {
+			clock_control_set_rate(pll_devs[i], (clock_control_subsys_t)CLOCK_CONTROL_TT_BH_INIT_STATE, (clock_control_subsys_rate_t)-1);
+		}	
 		/* Initialize some AICLK tracking variables */
 		InitAiclkPPM();
 	}
